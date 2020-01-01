@@ -16,56 +16,81 @@ string convertToLowerCase(string str)
     return str;
 }
 
-int rateEmail(string email, string keyword, int value)
+bool comparePhrase(string phrase, string keyword)
 {
+    int levenshteinDistance = 1;
     int counter = 0;
-    for(int i=0; i<email.length(); i++){
-        if(keyword == email.substr(i, keyword.length()))
-        {
-            counter++;
-        }
+
+    for(int i=0; i<keyword.length(); i++)
+    {
+        if(keyword[i] == phrase[i]) counter++;
     }
-    
-    return counter*value;
+
+    if(counter >= keyword.length() - levenshteinDistance) return true;
+    else return false;
 }
 
-void readKeywords(map<string, int>& hashMap, vector<string>& strVector)
+int rateEmail(string email, string keyword)
 {
-    string filenameKey="keywords.txt";
+    cout << "Rate";
+    int counter = 0;
+    for(int i=0; i<email.length(); i++)
+    {
+        string phrase = email.substr(i, keyword.length());
+
+        if(keyword.compare(phrase)) counter++;
+    }
+
+    return counter;
+}
+
+void readKeywords(vector<string>& strVector, vector<int>& intVector)
+{
+    string filename="keywords.txt";
     ifstream readKey;
-    readKey.open(filenameKey);
-    ifstream readValue;
-    string filenameValue="values.txt";
-    readValue.open(filenameValue);
+    readKey.open(filename);
+    ifstream readValue;;
+    readValue.open(filename);
 
     string key;
     int value;
-    while(getline(readKey, key))
+    while(readKey >> key && readValue >> value)
     {
-        readValue >> value;
         strVector.push_back(key);
-        hashMap.insert(pair<string, int>(key, value));
+        intVector.push_back(value);
     }
 
     readValue.close();
     readKey.close();
 }
 
+string cleanString(string str)
+{
+    for (int i=0; i<str.length(); i++)
+    {
+        if(ispunct(str[i])) str.erase(i--, 1);
+    }
+
+    str = convertToLowerCase(str);
+
+    return str;
+}
+
 string readEmail(string filename)
 {
     ifstream fin;
     fin.open(filename);
-    string line;
+    string word;
     string email;
 
-    while (getline(fin, line))
+    while (fin >> word)
     {
-        email += line;
-        cout << endl;
+        word = cleanString(word);
+        email += word + " ";
     }
 
     fin.close();
-    return email;
+    return email.substr(0, email.length()-1);
     
 }
 
@@ -81,17 +106,16 @@ int main()
     string filename = "email.txt";
     string email = readEmail(filename);
 
-    map<string, int> keywords;
-    vector<string> phrases;
-    readKeywords(keywords, phrases);
-    email = convertToLowerCase(email);
+    vector<string> keywords;
+    vector<int> values;
+    readKeywords(keywords, values);
 
     int result=0;
-    for(int i=0; i<phrases.size()-1; i++)
+    for(int i=0; i<keywords.size(); i++)
     {
-        int num = rateEmail(email, phrases.at(i), keywords.at(phrases.at(i)));
-        // cout << num << endl;
-        result += num;
+        int num = rateEmail(email, keywords[i]);
+        result += num * values[i];
+        cout << result << " " << num << endl;
     }
 
     cout << result << endl;
