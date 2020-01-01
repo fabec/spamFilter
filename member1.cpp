@@ -26,25 +26,31 @@ bool comparePhrase(string phrase, string keyword)
         if(keyword[i] == phrase[i]) counter++;
     }
 
-    if(counter >= keyword.length() - levenshteinDistance) return true;
+    if(counter == keyword.length() && keyword.length() == 1) return true;
+    else if((counter >= keyword.length() - levenshteinDistance) && (keyword.length() > levenshteinDistance)) return true;
     else return false;
 }
 
 int rateEmail(string email, string keyword)
 {
-    cout << "Rate";
     int counter = 0;
     for(int i=0; i<email.length(); i++)
     {
         string phrase = email.substr(i, keyword.length());
+        bool isGood = comparePhrase(phrase, keyword);
 
-        if(keyword.compare(phrase)) counter++;
+        cout << phrase << " " << keyword << " " << isGood << " " << counter <<endl;
+        if(isGood)
+        {
+            counter++;
+            i += keyword.length();
+        } 
     }
 
     return counter;
 }
 
-void readKeywords(vector<string>& strVector, vector<int>& intVector)
+void readKeys(vector<string> strVector, vector<int> intVector)
 {
     string filename="keywords.txt";
     ifstream readKey;
@@ -54,8 +60,9 @@ void readKeywords(vector<string>& strVector, vector<int>& intVector)
 
     string key;
     int value;
-    while(readKey >> key && readValue >> value)
+    while(readKey >> key)
     {
+        readValue >> value;
         strVector.push_back(key);
         intVector.push_back(value);
     }
@@ -66,10 +73,10 @@ void readKeywords(vector<string>& strVector, vector<int>& intVector)
 
 string cleanString(string str)
 {
-    for (int i=0; i<str.length(); i++)
-    {
-        if(ispunct(str[i])) str.erase(i--, 1);
-    }
+    // for (int i=0; i<str.length(); i++)
+    // {
+    //     if(ispunct(str[i])) str.erase(i--, 1);
+    // }
 
     str = convertToLowerCase(str);
 
@@ -103,19 +110,18 @@ string isSpam(int score)
 
 int main()
 {
-    string filename = "email.txt";
+    string filename = "email7.txt";
     string email = readEmail(filename);
 
-    vector<string> keywords;
-    vector<int> values;
-    readKeywords(keywords, values);
+    vector<string> keywords = {"$", "earn per week", "double your", "income in one week", "trial that lasts forever",  "opportunity", "income", "cash", "month free trial", "your love life"};
+    vector<int> values = {10, 20, 20, 15, 30, 10, 10, 20, 15, 25};
 
-    int result=0;
+    unsigned long long int result=0;
+    cout << email << endl;
     for(int i=0; i<keywords.size(); i++)
     {
         int num = rateEmail(email, keywords[i]);
-        result += num * values[i];
-        cout << result << " " << num << endl;
+        result = result + (num * values[i]);
     }
 
     cout << result << endl;
